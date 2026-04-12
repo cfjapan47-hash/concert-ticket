@@ -1,7 +1,32 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack)"
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(psql --version)",
+      "Bash(pg_isready)",
+      "Bash(export PATH=\"/c/Program Files/PostgreSQL/17/bin:/c/Program Files/PostgreSQL/16/bin:/c/Program Files/PostgreSQL/15/bin:$PATH\")",
+      "Read(//c/Program Files/**)",
+      "Bash(where psql:*)",
+      "Bash(dir \"C:\\\\Program Files\\\\PostgreSQL\")",
+      "Bash(export PATH=\"D:/Program Files/PostgreSQL/18/bin:$PATH\")",
+      "Bash(\"D:/Program Files/PostgreSQL/18/bin/psql.exe\" --version)",
+      "Bash(\"D:/Program Files/PostgreSQL/18/bin/createdb.exe\" -U postgres concert_ticket)",
+      "Bash(PGPASSWORD=oeumyfn5 \"D:/Program Files/PostgreSQL/18/bin/createdb.exe\" -U postgres concert_ticket)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+      "Bash(npx next:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001)",
+      "Bash(taskkill /F /PID 25904)",
+      "Bash(tasklist)",
+      "Bash(taskkill //F //PID 25904)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(gh auth:*)",
+      "Bash(gh repo:*)",
+      "Bash(node -e \"const Stripe = require\\('stripe'\\); console.log\\('ok'\\)\")",
+      "Bash(node -e \"const s = require\\('stripe'\\); const c = new s\\('sk_test_51TLTEIHT8ydvFtFmFXqIAgxNgGKnihmqCtvJIPzxlLginOBsoB3jBJAfHuaP8lZr5prx4dRCCu0vEaSpqG79TVZT00XZ0NcC81'\\); console.log\\(c._api?.version || 'default'\\)\")"
     ]
   }
 }

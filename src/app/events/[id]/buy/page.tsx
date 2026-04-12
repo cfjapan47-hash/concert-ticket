@@ -56,7 +56,7 @@ export default function BuyTicketPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/tickets", {
+      const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -65,7 +65,6 @@ export default function BuyTicketPage() {
           buyerName: form.name,
           buyerEmail: form.email || null,
           buyerPhone: form.phone || null,
-          status: "PAID",
           quantity,
         }),
       });
@@ -77,8 +76,8 @@ export default function BuyTicketPage() {
       }
 
       const data = await res.json();
-      setTickets(Array.isArray(data) ? data : [data]);
-      setStep(4);
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
     } finally {
       setSubmitting(false);
     }
@@ -345,7 +344,7 @@ export default function BuyTicketPage() {
                 disabled={submitting}
                 className="flex-1 bg-green-600 text-white py-4 rounded-xl text-xl font-bold hover:bg-green-700 disabled:opacity-50"
               >
-                {submitting ? "処理中..." : "購入を確定する"}
+                {submitting ? "決済画面に移動中..." : "カード決済に進む"}
               </button>
               <button
                 onClick={() => setStep(2)}
