@@ -228,19 +228,19 @@ export default function CheckinPage() {
       {/* Manual Input */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
         <h3 className="text-lg font-bold text-gray-800 mb-3">手動入力</h3>
-        <form onSubmit={handleCheckin} className="flex gap-3">
+        <form onSubmit={handleCheckin} className="space-y-3">
           <input
             ref={inputRef}
             type="text"
             value={ticketCode}
             onChange={(e) => setTicketCode(e.target.value)}
             placeholder="チケットコードを入力（例: TK-xxxxxxxx）"
-            className="flex-1 border-2 rounded-xl px-6 py-4 text-xl focus:border-indigo-500 focus:outline-none"
+            className="w-full border-2 rounded-xl px-6 py-4 text-xl focus:border-indigo-500 focus:outline-none"
           />
           <button
             type="submit"
             disabled={processing}
-            className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-700 disabled:opacity-50 whitespace-nowrap"
+            className="w-full bg-indigo-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-700 disabled:opacity-50"
           >
             {processing ? "処理中..." : "チェックイン"}
           </button>
