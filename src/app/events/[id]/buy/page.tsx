@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import Header from "@/components/Header";
 
@@ -109,6 +109,28 @@ export default function BuyTicketPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-xl text-red-500">イベントが見つかりません</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="flex items-center justify-center mt-20">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🎟</div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">
+              チケットを購入するにはログインが必要です
+            </h1>
+            <button
+              onClick={() => signIn("google")}
+              className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-700"
+            >
+              Googleでログイン
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
