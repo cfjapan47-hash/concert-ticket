@@ -22,12 +22,22 @@ interface EventDetail {
   _count: { tickets: number };
 }
 
+interface Manager {
+  id: string;
+  email: string;
+  name: string | null;
+  createdAt: string;
+}
+
 export default function EventDetailPage() {
   const params = useParams();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddSeat, setShowAddSeat] = useState(false);
   const [newSeat, setNewSeat] = useState({ name: "", price: "", capacity: "" });
+  const [managers, setManagers] = useState<Manager[]>([]);
+  const [newManagerEmail, setNewManagerEmail] = useState("");
+  const [newManagerName, setNewManagerName] = useState("");
 
   const fetchEvent = () => {
     fetch(`/api/events/${params.id}`)
@@ -36,9 +46,46 @@ export default function EventDetailPage() {
       .finally(() => setLoading(false));
   };
 
+  const fetchManagers = () => {
+    fetch(`/api/events/${params.id}/managers`)
+      .then((r) => r.json())
+      .then(setManagers);
+  };
+
   useEffect(() => {
     fetchEvent();
+    fetchManagers();
   }, [params.id]);
+
+  const addManager = async () => {
+    if (!newManagerEmail) {
+      alert("メールアドレスを入力してください");
+      return;
+    }
+    const res = await fetch(`/api/events/${params.id}/managers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: newManagerEmail, name: newManagerName }),
+    });
+    if (res.ok) {
+      setNewManagerEmail("");
+      setNewManagerName("");
+      fetchManagers();
+    } else {
+      const err = await res.json();
+      alert(err.error);
+    }
+  };
+
+  const removeManager = async (email: string) => {
+    if (!confirm(`${email} を管理者から削除しますか？`)) return;
+    await fetch(`/api/events/${params.id}/managers`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    fetchManagers();
+  };
 
   const addSeatType = async () => {
     if (!newSeat.name || !newSeat.price || !newSeat.capacity) {
@@ -202,6 +249,79 @@ export default function EventDetailPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* Event Managers */}
+      <div className="bg-white rounded-xl shadow p-6 mt-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-4">
+          イベント管理者
+        </h3>
+        <p className="text-sm text-gray-500 mb-4">
+          追加した管理者は、このイベントのチケット発行状況を閲覧できます。
+          共有URL:{" "}
+          <code className="bg-gray-100 px-2 py-1 rounded text-indigo-600 text-xs">
+            {typeof window !== "undefined" ? window.location.origin : ""}/event-dashboard/{params.id}
+          </code>
+        </p>
+
+        {/* Add Manager Form */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="flex gap-2 items-end flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-xs text-gray-500">メールアドレス *</label>
+              <input
+                type="email"
+                value={newManagerEmail}
+                onChange={(e) => setNewManagerEmail(e.target.value)}
+                className="border rounded-lg px-3 py-2 w-full"
+                placeholder="manager@example.com"
+              />
+            </div>
+            <div className="w-32">
+              <label className="text-xs text-gray-500">名前</label>
+              <input
+                type="text"
+                value={newManagerName}
+                onChange={(e) => setNewManagerName(e.target.value)}
+                className="border rounded-lg px-3 py-2 w-full"
+                placeholder="担当者名"
+              />
+            </div>
+            <button
+              onClick={addManager}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 whitespace-nowrap"
+            >
+              追加
+            </button>
+          </div>
+        </div>
+
+        {/* Manager List */}
+        {managers.length === 0 ? (
+          <p className="text-gray-500 text-sm">管理者がいません</p>
+        ) : (
+          <div className="space-y-2">
+            {managers.map((m) => (
+              <div
+                key={m.id}
+                className="flex items-center justify-between border rounded-lg p-3"
+              >
+                <div>
+                  <span className="font-medium text-gray-800">
+                    {m.name || "名前未設定"}
+                  </span>
+                  <span className="text-gray-500 ml-2 text-sm">{m.email}</span>
+                </div>
+                <button
+                  onClick={() => removeManager(m.email)}
+                  className="text-red-500 hover:text-red-700 text-sm"
+                >
+                  削除
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>

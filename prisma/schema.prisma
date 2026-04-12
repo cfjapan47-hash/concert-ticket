@@ -45,8 +45,21 @@ model Event {
   status      EventStatus @default(DRAFT)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  seatTypes   SeatType[]
-  tickets     Ticket[]
+  seatTypes     SeatType[]
+  tickets       Ticket[]
+  eventManagers EventManager[]
+}
+
+model EventManager {
+  id        String   @id @default(cuid())
+  eventId   String
+  email     String
+  name      String?
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, email])
+  @@index([email])
 }
 
 model SeatType {
