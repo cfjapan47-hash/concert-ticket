@@ -39,6 +39,14 @@ interface DashboardData {
     checkedInAt: string;
     seatType: { name: string };
   }[];
+  attendees: {
+    ticketCode: string;
+    buyerName: string;
+    buyerPhone: string | null;
+    status: string;
+    checkedInAt: string | null;
+    seatType: { name: string };
+  }[];
 }
 
 interface CheckinResult {
@@ -67,7 +75,7 @@ export default function EventDashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"dashboard" | "checkin">("dashboard");
+  const [tab, setTab] = useState<"dashboard" | "checkin" | "attendees">("dashboard");
 
   // Checkin state
   const [ticketCode, setTicketCode] = useState("");
@@ -293,6 +301,16 @@ export default function EventDashboardPage() {
               }`}
             >
               ✅ チェックイン
+            </button>
+            <button
+              onClick={() => { setTab("attendees"); fetchData(); }}
+              className={`flex-1 py-3 rounded-lg text-lg font-bold transition-colors ${
+                tab === "attendees"
+                  ? "bg-indigo-600 text-white"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              👥 来場者
             </button>
           </div>
         </div>
@@ -548,6 +566,95 @@ export default function EventDashboardPage() {
                         <span className="font-mono text-sm">{h.ticketCode}</span>
                         <span className="font-medium">{h.buyerName}</span>
                         <span className="text-gray-500 text-sm ml-auto">{h.seatType.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Attendees Tab */}
+          {tab === "attendees" && (
+            <>
+              <div className="bg-white rounded-xl shadow p-6 mb-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-600">入場率</span>
+                  <span className="font-bold text-lg">
+                    {data.attendees.filter((a) => a.status === "CHECKED_IN").length}/
+                    {data.attendees.length}人
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-6">
+                  <div
+                    className="bg-green-500 h-6 rounded-full transition-all flex items-center justify-center text-white text-sm font-bold"
+                    style={{
+                      width: `${data.attendees.length > 0
+                        ? (data.attendees.filter((a) => a.status === "CHECKED_IN").length / data.attendees.length) * 100
+                        : 0}%`,
+                    }}
+                  >
+                    {data.attendees.length > 0 &&
+                      `${Math.round(
+                        (data.attendees.filter((a) => a.status === "CHECKED_IN").length / data.attendees.length) * 100
+                      )}%`}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-800">
+                    来場者一覧（{data.attendees.length}名）
+                  </h3>
+                  <button
+                    onClick={fetchData}
+                    className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                  >
+                    🔄 更新
+                  </button>
+                </div>
+
+                {data.attendees.length === 0 ? (
+                  <p className="text-gray-500">チケット購入者がいません</p>
+                ) : (
+                  <div className="space-y-2">
+                    {data.attendees.map((a, i) => (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-3 p-3 rounded-lg ${
+                          a.status === "CHECKED_IN" ? "bg-green-50" : "bg-gray-50"
+                        }`}
+                      >
+                        <span className="text-xl">
+                          {a.status === "CHECKED_IN" ? "✅" : "⬜"}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-gray-800">{a.buyerName}</p>
+                          <p className="text-sm text-gray-500">
+                            {a.seatType.name}
+                            {a.buyerPhone && ` | ${a.buyerPhone}`}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          {a.status === "CHECKED_IN" ? (
+                            <span className="text-green-600 text-sm font-bold">
+                              入場済
+                              <br />
+                              <span className="text-xs font-normal text-gray-500">
+                                {a.checkedInAt &&
+                                  new Date(a.checkedInAt).toLocaleTimeString("ja-JP", {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-yellow-600 text-sm font-bold">
+                              未入場
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

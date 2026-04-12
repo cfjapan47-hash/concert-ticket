@@ -54,6 +54,20 @@ export async function GET(
     take: 50,
   });
 
+  // 全チケット購入者の来場状況一覧（PAID + CHECKED_IN）
+  const attendees = await prisma.ticket.findMany({
+    where: { eventId: id, status: { in: ["PAID", "CHECKED_IN"] } },
+    select: {
+      ticketCode: true,
+      buyerName: true,
+      buyerPhone: true,
+      status: true,
+      checkedInAt: true,
+      seatType: { select: { name: true } },
+    },
+    orderBy: [{ status: "asc" }, { buyerName: "asc" }],
+  });
+
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
@@ -99,5 +113,6 @@ export async function GET(
     fillRate: totalCapacity > 0 ? (activeTickets.length / totalCapacity) * 100 : 0,
     seatTypeSummaries,
     checkinHistory,
+    attendees,
   });
 }
