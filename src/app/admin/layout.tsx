@@ -47,7 +47,8 @@ export default function AdminLayout({
     );
   }
 
-  const isAdmin = (session as Record<string, unknown>).isAdmin;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isAdmin = (session as any).isAdmin;
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
