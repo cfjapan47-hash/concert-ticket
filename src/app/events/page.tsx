@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Header from "@/components/Header";
 
 interface SeatType {
   id: string;
@@ -44,13 +45,11 @@ export default function PublicEventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <Header />
+      {/* Sub Header */}
       <header className="bg-indigo-600 text-white py-6 px-4">
         <div className="max-w-3xl mx-auto">
-          <Link href="/" className="text-indigo-200 hover:text-white text-lg">
-            ← トップへ
-          </Link>
-          <h1 className="text-3xl font-bold mt-2">チケット購入</h1>
+          <h1 className="text-3xl font-bold">チケット購入</h1>
           <p className="text-indigo-200 mt-1 text-lg">
             ご希望のイベントを選んでください
           </p>

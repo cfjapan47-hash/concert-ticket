@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signIn } from "next-auth/react";
 
 const navItems = [
   { href: "/admin", label: "ダッシュボード", icon: "📊" },
@@ -18,6 +19,47 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-xl text-gray-500">読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">管理者ログイン</h1>
+          <p className="text-gray-500 mb-6">管理画面にアクセスするにはログインが必要です</p>
+          <button
+            onClick={() => signIn("google")}
+            className="bg-indigo-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-700"
+          >
+            Googleでログイン
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isAdmin = (session as Record<string, unknown>).isAdmin;
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⛔</div>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">アクセス権限がありません</h1>
+          <p className="text-gray-500 mb-2">このアカウントは管理者として登録されていません</p>
+          <p className="text-gray-400 text-sm">{session.user?.email}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

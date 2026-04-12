@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Header from "@/components/Header";
 
 interface SeatType {
   id: string;
@@ -31,6 +33,7 @@ interface IssuedTicket {
 
 export default function BuyTicketPage() {
   const params = useParams();
+  const { data: session } = useSession();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState(1);
@@ -46,6 +49,17 @@ export default function BuyTicketPage() {
       .then(setEvent)
       .finally(() => setLoading(false));
   }, [params.id]);
+
+  // Auto-fill from Google session
+  useEffect(() => {
+    if (session?.user) {
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || session.user?.name || "",
+        email: prev.email || session.user?.email || "",
+      }));
+    }
+  }, [session]);
 
   const handlePurchase = async () => {
     if (!form.name.trim()) {
@@ -101,7 +115,7 @@ export default function BuyTicketPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      <Header />
       <header className="bg-indigo-600 text-white py-4 px-4">
         <div className="max-w-lg mx-auto">
           <Link
