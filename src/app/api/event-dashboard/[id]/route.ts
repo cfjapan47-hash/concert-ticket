@@ -41,6 +41,19 @@ export async function GET(
     },
   });
 
+  // チェックイン済みチケットの履歴を取得
+  const checkinHistory = await prisma.ticket.findMany({
+    where: { eventId: id, status: "CHECKED_IN" },
+    select: {
+      ticketCode: true,
+      buyerName: true,
+      checkedInAt: true,
+      seatType: { select: { name: true } },
+    },
+    orderBy: { checkedInAt: "desc" },
+    take: 50,
+  });
+
   if (!event) {
     return NextResponse.json({ error: "Event not found" }, { status: 404 });
   }
@@ -85,5 +98,6 @@ export async function GET(
     revenue,
     fillRate: totalCapacity > 0 ? (activeTickets.length / totalCapacity) * 100 : 0,
     seatTypeSummaries,
+    checkinHistory,
   });
 }

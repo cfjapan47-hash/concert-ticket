@@ -33,6 +33,12 @@ interface DashboardData {
   revenue: number;
   fillRate: number;
   seatTypeSummaries: SeatTypeSummary[];
+  checkinHistory: {
+    ticketCode: string;
+    buyerName: string;
+    checkedInAt: string;
+    seatType: { name: string };
+  }[];
 }
 
 interface CheckinResult {
@@ -484,11 +490,11 @@ export default function EventDashboardPage() {
                 </div>
               )}
 
-              {/* Log */}
+              {/* Local Log */}
               {checkinLogs.length > 0 && (
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 mb-6">
                   <h3 className="text-lg font-bold text-gray-800 mb-4">
-                    チェックイン履歴
+                    今回のチェックイン
                   </h3>
                   <div className="space-y-2">
                     {checkinLogs.map((log, i) => (
@@ -512,6 +518,41 @@ export default function EventDashboardPage() {
                   </div>
                 </div>
               )}
+
+              {/* Shared Checkin History */}
+              <div className="bg-white rounded-xl shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-800">
+                    入場済み一覧（全管理者共有）
+                  </h3>
+                  <button
+                    onClick={fetchData}
+                    className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                  >
+                    🔄 更新
+                  </button>
+                </div>
+                {data.checkinHistory.length === 0 ? (
+                  <p className="text-gray-500">まだ入場者はいません</p>
+                ) : (
+                  <div className="space-y-2">
+                    {data.checkinHistory.map((h, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-blue-50"
+                      >
+                        <span className="text-xl">✅</span>
+                        <span className="text-sm text-gray-500">
+                          {new Date(h.checkedInAt).toLocaleTimeString("ja-JP")}
+                        </span>
+                        <span className="font-mono text-sm">{h.ticketCode}</span>
+                        <span className="font-medium">{h.buyerName}</span>
+                        <span className="text-gray-500 text-sm ml-auto">{h.seatType.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
