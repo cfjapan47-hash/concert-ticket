@@ -146,6 +146,20 @@ export default async function TicketPage({
         <p className="text-center text-sm text-gray-400 mt-4">
           このページをスクリーンショットで保存しても入場できます
         </p>
+        <div className="flex justify-center gap-4 mt-4">
+          <a
+            href="/mypage"
+            className="bg-indigo-600 text-white px-6 py-3 rounded-xl text-lg font-bold hover:bg-indigo-700"
+          >
+            マイチケット
+          </a>
+          <a
+            href="/"
+            className="bg-gray-200 text-gray-700 px-6 py-3 rounded-xl text-lg font-bold hover:bg-gray-300"
+          >
+            ホーム
+          </a>
+        </div>
       </div>
     </div>
   );
