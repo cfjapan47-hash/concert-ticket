@@ -14,7 +14,8 @@ export const authOptions: AuthOptions = {
         const adminEmails = (process.env.ADMIN_EMAILS || "")
           .split(",")
           .map((e) => e.trim().toLowerCase());
-        (session as Record<string, unknown>).isAdmin = adminEmails.includes(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session as any).isAdmin = adminEmails.includes(
           session.user.email.toLowerCase()
         );
       }
