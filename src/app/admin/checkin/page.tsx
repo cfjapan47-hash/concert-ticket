@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 interface CheckinResult {
   success: boolean;
@@ -31,10 +31,13 @@ export default function CheckinPage() {
   const [logs, setLogs] = useState<CheckinLog[]>([]);
   const [processing, setProcessing] = useState(false);
   const [stats, setStats] = useState({ total: 0, checkedIn: 0 });
+  const [scanning, setScanning] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scannerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const html5QrCodeRef = useRef<any>(null);
 
   useEffect(() => {
-    // Fetch stats
     fetch("/api/dashboard")
       .then((r) => r.json())
       .then((data) => {
@@ -45,43 +48,122 @@ export default function CheckinPage() {
       });
   }, [logs]);
 
+  const doCheckin = useCallback(
+    async (code: string) => {
+      if (!code.trim() || processing) return;
+
+      setProcessing(true);
+      setResult(null);
+
+      try {
+        const res = await fetch("/api/checkin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticketCode: code.trim() }),
+        });
+
+        const data: CheckinResult = await res.json();
+        setResult(data);
+
+        setLogs((prev) => [
+          {
+            time: new Date().toLocaleTimeString("ja-JP"),
+            ticketCode: data.ticket?.ticketCode || code,
+            buyerName: data.ticket?.buyerName || "-",
+            eventName: data.ticket?.event?.name || "-",
+            success: data.success,
+            message: data.success ? "入場OK" : data.error || "エラー",
+          },
+          ...prev,
+        ]);
+
+        setTicketCode("");
+      } finally {
+        setProcessing(false);
+        inputRef.current?.focus();
+      }
+    },
+    [processing]
+  );
+
   const handleCheckin = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!ticketCode.trim() || processing) return;
+    await doCheckin(ticketCode);
+  };
 
-    setProcessing(true);
-    setResult(null);
-
+  const startScanner = async () => {
     try {
-      const res = await fetch("/api/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticketCode: ticketCode.trim() }),
-      });
+      const { Html5Qrcode } = await import("html5-qrcode");
 
-      const data: CheckinResult = await res.json();
-      setResult(data);
+      if (html5QrCodeRef.current) {
+        try {
+          await html5QrCodeRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
 
-      setLogs((prev) => [
-        {
-          time: new Date().toLocaleTimeString("ja-JP"),
-          ticketCode: data.ticket?.ticketCode || ticketCode,
-          buyerName: data.ticket?.buyerName || "-",
-          eventName: data.ticket?.event?.name || "-",
-          success: data.success,
-          message: data.success
-            ? "入場OK"
-            : data.error || "エラー",
+      const scanner = new Html5Qrcode("qr-reader");
+      html5QrCodeRef.current = scanner;
+      setScanning(true);
+
+      await scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        async (decodedText: string) => {
+          // Stop scanner after successful scan
+          try {
+            await scanner.stop();
+          } catch {
+            // ignore
+          }
+          setScanning(false);
+
+          // Extract ticket code from URL or use as-is
+          let code = decodedText;
+          if (decodedText.includes("/ticket/")) {
+            code = decodedText.split("/ticket/").pop() || decodedText;
+          }
+
+          setTicketCode(code);
+          await doCheckin(code);
         },
-        ...prev,
-      ]);
-
-      setTicketCode("");
-    } finally {
-      setProcessing(false);
-      inputRef.current?.focus();
+        () => {
+          // QR code not found in frame - ignore
+        }
+      );
+    } catch (err) {
+      console.error("Scanner error:", err);
+      alert(
+        "カメラを起動できませんでした。カメラへのアクセスを許可してください。"
+      );
+      setScanning(false);
     }
   };
+
+  const stopScanner = async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        await html5QrCodeRef.current.stop();
+      } catch {
+        // ignore
+      }
+    }
+    setScanning(false);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (html5QrCodeRef.current) {
+        try {
+          html5QrCodeRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, []);
 
   const checkinRate =
     stats.total > 0 ? (stats.checkedIn / stats.total) * 100 : 0;
@@ -110,17 +192,50 @@ export default function CheckinPage() {
         </div>
       </div>
 
-      {/* Scan Input */}
+      {/* QR Scanner */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-gray-800">QRスキャン</h3>
+          {!scanning ? (
+            <button
+              onClick={startScanner}
+              className="bg-green-600 text-white px-6 py-3 rounded-xl text-lg font-bold hover:bg-green-700"
+            >
+              📷 カメラを起動
+            </button>
+          ) : (
+            <button
+              onClick={stopScanner}
+              className="bg-red-600 text-white px-6 py-3 rounded-xl text-lg font-bold hover:bg-red-700"
+            >
+              ■ カメラを停止
+            </button>
+          )}
+        </div>
+        <div
+          id="qr-reader"
+          ref={scannerRef}
+          className={`${scanning ? "" : "hidden"} rounded-xl overflow-hidden`}
+          style={{ maxWidth: "500px", margin: "0 auto" }}
+        />
+        {scanning && (
+          <p className="text-center text-gray-500 mt-2">
+            チケットのQRコードをカメラにかざしてください
+          </p>
+        )}
+      </div>
+
+      {/* Manual Input */}
+      <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">手動入力</h3>
         <form onSubmit={handleCheckin} className="flex gap-3">
           <input
             ref={inputRef}
             type="text"
             value={ticketCode}
             onChange={(e) => setTicketCode(e.target.value)}
-            placeholder="チケットコードを入力 or QRスキャン"
+            placeholder="チケットコードを入力（例: TK-xxxxxxxx）"
             className="flex-1 border-2 rounded-xl px-6 py-4 text-xl focus:border-indigo-500 focus:outline-none"
-            autoFocus
           />
           <button
             type="submit"
