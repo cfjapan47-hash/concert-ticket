@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TicketStatus {
+  RESERVED
+  PAID
+  CHECKED_IN
+  CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+enum EventStatus {
+  DRAFT
+  ON_SALE
+  CLOSED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  name        String
+  date        DateTime
+  venue       String
+  description String?
+  status      EventStatus @default(DRAFT)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  seatTypes   SeatType[]
+  tickets     Ticket[]
+}
+
+model SeatType {
+  id        String   @id @default(cuid())
+  eventId   String
+  name      String
+  price     Int
+  capacity  Int
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets   Ticket[]
+
+  @@index([eventId])
+}
+
+model Ticket {
+  id          String       @id @default(cuid())
+  ticketCode  String       @unique
+  eventId     String
+  seatTypeId  String
+  buyerName   String
+  buyerEmail  String?
+  buyerPhone  String?
+  status      TicketStatus @default(RESERVED)
+  purchasedAt DateTime     @default(now())
+  checkedInAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  seatType    SeatType     @relation(fields: [seatTypeId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([seatTypeId])
+  @@index([ticketCode])
+}
