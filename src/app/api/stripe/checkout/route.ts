@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { nanoid } from "nanoid";
 
 export async function POST(req: NextRequest) {
+  // 30分以上経過した未決済チケットを自動削除
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  await prisma.ticket.deleteMany({
+    where: { status: "RESERVED", createdAt: { lt: thirtyMinutesAgo } },
+  });
+
   const body = await req.json();
   const { eventId, seatTypeId, buyerName, buyerEmail, buyerPhone, quantity } =
     body;
