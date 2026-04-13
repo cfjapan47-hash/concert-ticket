@@ -27,6 +27,7 @@ interface CheckinLog {
 
 export default function CheckinPage() {
   const [ticketCode, setTicketCode] = useState("");
+  const [onetimeCode, setOnetimeCode] = useState("");
   const [result, setResult] = useState<CheckinResult | null>(null);
   const [logs, setLogs] = useState<CheckinLog[]>([]);
   const [processing, setProcessing] = useState(false);
@@ -225,9 +226,65 @@ export default function CheckinPage() {
         )}
       </div>
 
-      {/* Manual Input */}
+      {/* One-time Code Input */}
       <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-3">手動入力</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-3">🔑 入場コードで受付</h3>
+        <p className="text-sm text-gray-500 mb-3">来場者のスマホに表示された6桁のコードを入力</p>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!onetimeCode.trim() || processing) return;
+            setProcessing(true);
+            setResult(null);
+            try {
+              const res = await fetch("/api/checkin-code/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: onetimeCode.trim() }),
+              });
+              const data = await res.json();
+              setResult(data);
+              setLogs((prev) => [
+                {
+                  time: new Date().toLocaleTimeString("ja-JP"),
+                  ticketCode: data.ticket?.ticketCode || onetimeCode,
+                  buyerName: data.ticket?.buyerName || "-",
+                  eventName: data.ticket?.event?.name || "-",
+                  success: data.success,
+                  message: data.success ? "入場OK" : data.error || "エラー",
+                },
+                ...prev,
+              ]);
+              setOnetimeCode("");
+            } finally {
+              setProcessing(false);
+            }
+          }}
+          className="space-y-3"
+        >
+          <input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={onetimeCode}
+            onChange={(e) => setOnetimeCode(e.target.value)}
+            placeholder="6桁の入場コード"
+            className="w-full border-2 rounded-xl px-6 py-4 text-3xl text-center tracking-widest focus:border-green-500 focus:outline-none font-mono"
+            maxLength={6}
+          />
+          <button
+            type="submit"
+            disabled={processing || onetimeCode.length !== 6}
+            className="w-full bg-green-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-green-700 disabled:opacity-50"
+          >
+            {processing ? "処理中..." : "入場を確認"}
+          </button>
+        </form>
+      </div>
+
+      {/* Manual Ticket Code Input */}
+      <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">チケットコードで受付</h3>
         <form onSubmit={handleCheckin} className="space-y-3">
           <input
             ref={inputRef}

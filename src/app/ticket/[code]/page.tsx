@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import QRCode from "qrcode";
+import CheckinCodeButton from "@/components/CheckinCodeButton";
 
 const statusLabel: Record<string, string> = {
   RESERVED: "予約中（未決済）",
@@ -139,12 +140,18 @@ export default async function TicketPage({
             <p className="mt-3 font-mono text-lg text-indigo-600 font-bold">
               {ticket.ticketCode}
             </p>
+
+            {/* One-time checkin code */}
+            <CheckinCodeButton
+              ticketCode={ticket.ticketCode}
+              ticketStatus={ticket.status}
+            />
           </div>
         </div>
 
         {/* Footer */}
         <p className="text-center text-sm text-gray-400 mt-4">
-          このページをスクリーンショットで保存しても入場できます
+          スクリーンショットでは入場できません。ログインして入場コードを生成してください。
         </p>
         <div className="flex justify-center gap-4 mt-4">
           <a
