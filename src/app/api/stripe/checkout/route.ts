@@ -68,7 +68,18 @@ export async function POST(req: NextRequest) {
 
   // Create Stripe Checkout Session
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
+    payment_method_types: ["card", "konbini", "customer_balance"],
+    payment_method_options: {
+      konbini: {
+        expires_after_days: 3,
+      },
+      customer_balance: {
+        funding_type: "bank_transfer",
+        bank_transfer: {
+          type: "jp_bank_transfer",
+        },
+      },
+    },
     line_items: [
       {
         price_data: {
