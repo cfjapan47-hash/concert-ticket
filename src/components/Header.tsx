@@ -2,9 +2,11 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function Header() {
   const { data: session, status } = useSession();
+  const [showLoginMenu, setShowLoginMenu] = useState(false);
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -44,12 +46,38 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => signIn("google")}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-indigo-700"
-            >
-              Googleでログイン
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowLoginMenu(!showLoginMenu)}
+                className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-base font-medium hover:bg-indigo-700"
+              >
+                ログイン
+              </button>
+              {showLoginMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowLoginMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border z-50 overflow-hidden">
+                    <button
+                      onClick={() => { signIn("google"); setShowLoginMenu(false); }}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-base"
+                    >
+                      <span className="text-xl">G</span>
+                      Googleでログイン
+                    </button>
+                    <button
+                      onClick={() => { signIn("line"); setShowLoginMenu(false); }}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-base border-t"
+                    >
+                      <span className="text-xl text-green-500">💬</span>
+                      LINEでログイン
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>
