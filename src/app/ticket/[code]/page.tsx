@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import QRCode from "qrcode";
 import CheckinCodeButton from "@/components/CheckinCodeButton";
 
 const statusLabel: Record<string, string> = {
@@ -35,11 +34,6 @@ export default async function TicketPage({
   if (!ticket) {
     notFound();
   }
-
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const qrCodeDataUrl = await QRCode.toDataURL(`${baseUrl}/ticket/${code}`, {
-    width: 300,
-  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-50 to-white flex items-center justify-center p-4">
@@ -125,19 +119,9 @@ export default async function TicketPage({
             <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-indigo-50 rounded-full" />
           </div>
 
-          {/* QR Code */}
+          {/* Checkin Code */}
           <div className="p-6 text-center">
-            <p className="text-sm text-gray-500 mb-3">
-              入場時にこのQRコードを提示してください
-            </p>
-            <div className="flex justify-center">
-              <img
-                src={qrCodeDataUrl}
-                alt="QR Code"
-                className="w-56 h-56"
-              />
-            </div>
-            <p className="mt-3 font-mono text-lg text-indigo-600 font-bold">
+            <p className="font-mono text-sm text-gray-400 mb-2">
               {ticket.ticketCode}
             </p>
 
