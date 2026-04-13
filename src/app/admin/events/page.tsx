@@ -23,12 +23,14 @@ interface Event {
 }
 
 const eventStatusLabel: Record<string, string> = {
+  PENDING: "承認待ち",
   DRAFT: "下書き",
   ON_SALE: "販売中",
   CLOSED: "終了",
 };
 
 const eventStatusColor: Record<string, string> = {
+  PENDING: "bg-orange-100 text-orange-800",
   DRAFT: "bg-gray-100 text-gray-800",
   ON_SALE: "bg-green-100 text-green-800",
   CLOSED: "bg-red-100 text-red-800",
@@ -278,6 +280,7 @@ export default function EventsPage() {
                   onChange={(e) => setForm({ ...form, status: e.target.value })}
                   className="w-full border rounded-lg px-4 py-3 text-lg"
                 >
+                  <option value="PENDING">承認待ち</option>
                   <option value="DRAFT">下書き</option>
                   <option value="ON_SALE">販売中</option>
                   <option value="CLOSED">終了</option>
@@ -421,7 +424,35 @@ export default function EventsPage() {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
+                  {event.status === "PENDING" && (
+                    <>
+                      <button
+                        onClick={async () => {
+                          if (!confirm("このイベントを承認して販売開始しますか？")) return;
+                          await fetch(`/api/events/${event.id}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ status: "ON_SALE" }),
+                          });
+                          fetchEvents();
+                        }}
+                        className="px-4 py-2 text-sm bg-green-50 text-green-600 rounded-lg hover:bg-green-100 font-bold"
+                      >
+                        ✅ 承認
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!confirm("このイベント申請を却下しますか？")) return;
+                          await fetch(`/api/events/${event.id}`, { method: "DELETE" });
+                          fetchEvents();
+                        }}
+                        className="px-4 py-2 text-sm bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-bold"
+                      >
+                        ❌ 却下
+                      </button>
+                    </>
+                  )}
                   <button
                     onClick={() => startEdit(event)}
                     className="px-4 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100"

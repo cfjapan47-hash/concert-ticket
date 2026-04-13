@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, date, venue, description, flyerUrl, status, seatTypes } = body;
+  const { name, date, venue, description, flyerUrl, status, creatorEmail, seatTypes } = body;
 
   const event = await prisma.event.create({
     data: {
@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
       venue,
       description: description || null,
       flyerUrl: flyerUrl || null,
+      creatorEmail: creatorEmail || null,
       status: status || "DRAFT",
       seatTypes: seatTypes
         ? {

@@ -11,12 +11,20 @@ export default function Home() {
         <p className="text-xl text-indigo-200 mb-8">
           オンラインでチケットを購入できます
         </p>
-        <Link
-          href="/events"
-          className="inline-block bg-white text-indigo-700 px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg"
-        >
-          チケットを購入する
-        </Link>
+        <div className="flex flex-col gap-4">
+          <Link
+            href="/events"
+            className="inline-block bg-white text-indigo-700 px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg"
+          >
+            チケットを購入する
+          </Link>
+          <Link
+            href="/create-event"
+            className="inline-block bg-indigo-700 text-white border-2 border-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-indigo-800 transition-colors shadow-lg"
+          >
+            イベントを作成する
+          </Link>
+        </div>
       </div>
     </div>
   );
