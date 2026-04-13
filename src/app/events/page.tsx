@@ -17,6 +17,7 @@ interface Event {
   date: string;
   venue: string;
   description: string | null;
+  flyerUrl: string | null;
   status: string;
   seatTypes: SeatType[];
   _count: { tickets: number };
@@ -75,6 +76,13 @@ export default function PublicEventsPage() {
                   href={`/events/${event.id}/buy`}
                   className="block bg-white rounded-2xl shadow hover:shadow-lg transition-shadow"
                 >
+                  {event.flyerUrl && !event.flyerUrl.endsWith(".pdf") && (
+                    <img
+                      src={event.flyerUrl}
+                      alt={event.name}
+                      className="w-full h-48 object-cover"
+                    />
+                  )}
                   <div className="p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-3">
                       {event.name}
@@ -98,6 +106,17 @@ export default function PublicEventsPage() {
                     </div>
                     {event.description && (
                       <p className="text-gray-500 mt-2">{event.description}</p>
+                    )}
+                    {event.flyerUrl && event.flyerUrl.endsWith(".pdf") && (
+                      <a
+                        href={event.flyerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-2 text-indigo-600 underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        📄 チラシPDFを見る
+                      </a>
                     )}
 
                     {/* Seat types summary */}

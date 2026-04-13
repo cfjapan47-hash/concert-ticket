@@ -27,7 +27,7 @@ export async function PUT(
 ) {
   const { id } = await params;
   const body = await req.json();
-  const { name, date, venue, description, status } = body;
+  const { name, date, venue, description, flyerUrl, status } = body;
 
   const event = await prisma.event.update({
     where: { id },
@@ -36,6 +36,7 @@ export async function PUT(
       ...(date && { date: new Date(date) }),
       ...(venue && { venue }),
       ...(description !== undefined && { description }),
+      ...(flyerUrl !== undefined && { flyerUrl }),
       ...(status && { status }),
     },
     include: { seatTypes: true },

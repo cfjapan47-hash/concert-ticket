@@ -16,6 +16,7 @@ interface Event {
   date: string;
   venue: string;
   description: string | null;
+  flyerUrl: string | null;
   status: string;
   seatTypes: SeatType[];
   _count: { tickets: number };
@@ -43,8 +44,10 @@ export default function EventsPage() {
     date: "",
     venue: "",
     description: "",
+    flyerUrl: "",
     status: "DRAFT",
   });
+  const [uploading, setUploading] = useState(false);
   const [seatTypeForm, setSeatTypeForm] = useState<
     { name: string; price: string; capacity: string }[]
   >([{ name: "S席", price: "10000", capacity: "100" }]);
@@ -61,7 +64,7 @@ export default function EventsPage() {
   }, []);
 
   const resetForm = () => {
-    setForm({ name: "", date: "", venue: "", description: "", status: "DRAFT" });
+    setForm({ name: "", date: "", venue: "", description: "", flyerUrl: "", status: "DRAFT" });
     setSeatTypeForm([{ name: "S席", price: "10000", capacity: "100" }]);
     setEditingId(null);
     setShowForm(false);
@@ -113,6 +116,7 @@ export default function EventsPage() {
       date: event.date.slice(0, 16),
       venue: event.venue,
       description: event.description || "",
+      flyerUrl: event.flyerUrl || "",
       status: event.status,
     });
     setEditingId(event.id);
@@ -201,6 +205,68 @@ export default function EventsPage() {
                   className="w-full border rounded-lg px-4 py-3 text-lg"
                   rows={3}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  チラシ画像 / PDF
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setUploading(true);
+                    try {
+                      const fd = new FormData();
+                      fd.append("file", file);
+                      fd.append("eventId", editingId || "new");
+                      const res = await fetch("/api/upload", {
+                        method: "POST",
+                        body: fd,
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                        setForm({ ...form, flyerUrl: data.url });
+                      } else {
+                        alert(data.error || "アップロードに失敗しました");
+                      }
+                    } finally {
+                      setUploading(false);
+                    }
+                  }}
+                  className="w-full border rounded-lg px-4 py-3 text-lg"
+                />
+                {uploading && (
+                  <p className="text-sm text-indigo-600 mt-1">アップロード中...</p>
+                )}
+                {form.flyerUrl && (
+                  <div className="mt-2">
+                    {form.flyerUrl.endsWith(".pdf") ? (
+                      <a
+                        href={form.flyerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 underline"
+                      >
+                        PDF を確認
+                      </a>
+                    ) : (
+                      <img
+                        src={form.flyerUrl}
+                        alt="チラシプレビュー"
+                        className="max-h-40 rounded-lg"
+                      />
+                    )}
+                    <button
+                      onClick={() => setForm({ ...form, flyerUrl: "" })}
+                      className="text-red-500 text-sm ml-2"
+                    >
+                      削除
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
