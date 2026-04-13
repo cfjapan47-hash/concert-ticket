@@ -128,8 +128,8 @@ export default function EventDetailPage() {
   }
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const buyUrl = `${baseUrl}/events/${params.id}/buy`;
-  const dashboardUrl = `${baseUrl}/event-dashboard/${params.id}`;
+  const buyUrl = `${baseUrl}/events/${params.id}/buy?ref=line`;
+  const dashboardUrl = `${baseUrl}/event-dashboard/${params.id}?ref=line`;
 
   const copyUrl = (url: string, label: string) => {
     navigator.clipboard.writeText(url);
