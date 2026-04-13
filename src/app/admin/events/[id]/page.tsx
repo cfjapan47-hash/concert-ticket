@@ -127,12 +127,49 @@ export default function EventDetailPage() {
     return <div className="text-red-500 text-xl">イベントが見つかりません</div>;
   }
 
+  const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const buyUrl = `${baseUrl}/events/${params.id}/buy`;
+  const dashboardUrl = `${baseUrl}/event-dashboard/${params.id}`;
+
+  const copyUrl = (url: string, label: string) => {
+    navigator.clipboard.writeText(url);
+    alert(`${label}のURLをコピーしました`);
+  };
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-800 mb-2">{event.name}</h2>
-      <p className="text-gray-600 mb-6">
+      <p className="text-gray-600 mb-4">
         📅 {new Date(event.date).toLocaleString("ja-JP")} | 📍 {event.venue}
       </p>
+
+      {/* Share URLs */}
+      <div className="bg-indigo-50 rounded-xl p-4 mb-6 space-y-3">
+        <h3 className="font-bold text-indigo-800">共有URL</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600 w-24 flex-shrink-0">チケット購入:</span>
+          <code className="text-xs bg-white px-2 py-1 rounded flex-1 truncate">{buyUrl}</code>
+          <button
+            onClick={() => copyUrl(buyUrl, "チケット購入")}
+            className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700 flex-shrink-0"
+          >
+            コピー
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600 w-24 flex-shrink-0">管理者共有:</span>
+          <code className="text-xs bg-white px-2 py-1 rounded flex-1 truncate">{dashboardUrl}</code>
+          <button
+            onClick={() => copyUrl(dashboardUrl, "管理者ダッシュボード")}
+            className="bg-indigo-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-indigo-700 flex-shrink-0"
+          >
+            コピー
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">
+          チケット購入URLをLINEやSNSで共有すると、このイベントだけの購入ページが開きます
+        </p>
+      </div>
 
       {event.description && (
         <div className="bg-white rounded-xl shadow p-6 mb-6">
