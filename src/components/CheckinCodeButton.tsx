@@ -12,6 +12,7 @@ export default function CheckinCodeButton({
 }) {
   const { data: session } = useSession();
   const [code, setCode] = useState<string | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -20,6 +21,7 @@ export default function CheckinCodeButton({
     setLoading(true);
     setError("");
     setCode(null);
+    setQrDataUrl(null);
 
     try {
       const res = await fetch("/api/checkin-code/generate", {
@@ -36,6 +38,15 @@ export default function CheckinCodeButton({
 
       setCode(data.code);
       setTimeLeft(30);
+
+      // Generate QR code client-side
+      const QRCode = (await import("qrcode")).default;
+      const qr = await QRCode.toDataURL(`OTC:${data.code}`, {
+        width: 280,
+        margin: 2,
+        color: { dark: "#166534", light: "#f0fdf4" },
+      });
+      setQrDataUrl(qr);
     } finally {
       setLoading(false);
     }
@@ -44,7 +55,10 @@ export default function CheckinCodeButton({
   // Countdown timer
   useEffect(() => {
     if (timeLeft <= 0) {
-      if (code) setCode(null);
+      if (code) {
+        setCode(null);
+        setQrDataUrl(null);
+      }
       return;
     }
 
@@ -55,10 +69,7 @@ export default function CheckinCodeButton({
     return () => clearInterval(timer);
   }, [timeLeft, code]);
 
-  // Don't show for non-PAID tickets
   if (ticketStatus !== "PAID") return null;
-
-  // Don't show if not logged in
   if (!session) return null;
 
   return (
@@ -70,7 +81,7 @@ export default function CheckinCodeButton({
             disabled={loading}
             className="bg-green-600 text-white px-8 py-4 rounded-xl text-xl font-bold hover:bg-green-700 disabled:opacity-50 w-full max-w-xs"
           >
-            {loading ? "生成中..." : "🔑 入場コードを表示"}
+            {loading ? "生成中..." : "🔑 入場QRコードを表示"}
           </button>
           <p className="text-sm text-gray-400 mt-2">
             受付スタッフの前でタップしてください（30秒有効）
@@ -80,19 +91,28 @@ export default function CheckinCodeButton({
       ) : (
         <div className="bg-green-50 border-2 border-green-500 rounded-2xl p-6">
           <p className="text-sm text-green-600 font-bold mb-2">
-            入場コード（残り{timeLeft}秒）
+            入場用QRコード（残り {timeLeft} 秒）
           </p>
-          <p className="text-5xl font-mono font-bold text-green-700 tracking-widest">
+
+          {qrDataUrl && (
+            <div className="flex justify-center my-3">
+              <img src={qrDataUrl} alt="入場QR" className="w-56 h-56" />
+            </div>
+          )}
+
+          <p className="text-3xl font-mono font-bold text-green-700 tracking-widest">
             {code}
           </p>
+
           <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
             <div
               className="bg-green-500 h-2 rounded-full transition-all"
               style={{ width: `${(timeLeft / 30) * 100}%` }}
             />
           </div>
+
           <p className="text-sm text-gray-500 mt-3">
-            このコードを受付スタッフに伝えてください
+            受付でこのQRコードをスキャンしてもらってください
           </p>
         </div>
       )}

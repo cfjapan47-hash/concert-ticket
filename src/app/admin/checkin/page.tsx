@@ -120,6 +120,39 @@ export default function CheckinPage() {
           }
           setScanning(false);
 
+          // Check if it's a one-time code QR (OTC:123456)
+          if (decodedText.startsWith("OTC:")) {
+            const otc = decodedText.replace("OTC:", "");
+            setOnetimeCode(otc);
+            // Auto-verify the one-time code
+            setProcessing(true);
+            setResult(null);
+            try {
+              const res = await fetch("/api/checkin-code/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: otc }),
+              });
+              const data = await res.json();
+              setResult(data);
+              setLogs((prev) => [
+                {
+                  time: new Date().toLocaleTimeString("ja-JP"),
+                  ticketCode: data.ticket?.ticketCode || otc,
+                  buyerName: data.ticket?.buyerName || "-",
+                  eventName: data.ticket?.event?.name || "-",
+                  success: data.success,
+                  message: data.success ? "入場OK" : data.error || "エラー",
+                },
+                ...prev,
+              ]);
+              setOnetimeCode("");
+            } finally {
+              setProcessing(false);
+            }
+            return;
+          }
+
           // Extract ticket code from URL or use as-is
           let code = decodedText;
           if (decodedText.includes("/ticket/")) {

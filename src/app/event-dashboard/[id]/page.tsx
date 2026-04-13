@@ -164,6 +164,37 @@ export default function EventDashboardPage() {
         async (decodedText: string) => {
           try { await scanner.stop(); } catch { /* ignore */ }
           setScanning(false);
+
+          // Check if it's a one-time code QR (OTC:123456)
+          if (decodedText.startsWith("OTC:")) {
+            const otc = decodedText.replace("OTC:", "");
+            setProcessing(true);
+            setCheckinResult(null);
+            try {
+              const res = await fetch("/api/checkin-code/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: otc }),
+              });
+              const data = await res.json();
+              setCheckinResult(data);
+              setCheckinLogs((prev) => [
+                {
+                  time: new Date().toLocaleTimeString("ja-JP"),
+                  ticketCode: data.ticket?.ticketCode || otc,
+                  buyerName: data.ticket?.buyerName || "-",
+                  success: data.success,
+                  message: data.success ? "入場OK" : data.error || "エラー",
+                },
+                ...prev,
+              ]);
+              fetchData();
+            } finally {
+              setProcessing(false);
+            }
+            return;
+          }
+
           let code = decodedText;
           if (decodedText.includes("/ticket/")) {
             code = decodedText.split("/ticket/").pop() || decodedText;
