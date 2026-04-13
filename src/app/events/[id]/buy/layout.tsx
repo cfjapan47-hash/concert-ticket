@@ -10,7 +10,13 @@ export async function generateMetadata({
 
   const event = await prisma.event.findUnique({
     where: { id },
-    select: { name: true, date: true, venue: true, description: true, flyerUrl: true },
+    select: {
+      name: true,
+      date: true,
+      venue: true,
+      description: true,
+      flyerUrl: true,
+    },
   });
 
   if (!event) {
@@ -23,32 +29,34 @@ export async function generateMetadata({
     day: "numeric",
   });
 
-  const title = event.name;
+  const title = `${event.name} - チケット購入`;
   const description = `${dateStr} / ${event.venue}${event.description ? ` - ${event.description}` : ""}`;
 
-  const images = event.flyerUrl && !event.flyerUrl.endsWith(".pdf")
-    ? [{ url: event.flyerUrl }]
-    : [];
+  const images =
+    event.flyerUrl && !event.flyerUrl.endsWith(".pdf")
+      ? [{ url: event.flyerUrl, width: 1200, height: 630 }]
+      : [];
 
   return {
     title,
     description,
     openGraph: {
-      title,
+      title: event.name,
       description,
       images,
       type: "website",
+      siteName: "コンサートチケット",
     },
     twitter: {
       card: images.length > 0 ? "summary_large_image" : "summary",
-      title,
+      title: event.name,
       description,
       images: images.map((i) => i.url),
     },
   };
 }
 
-export default function EventLayout({
+export default function BuyLayout({
   children,
 }: {
   children: React.ReactNode;
